@@ -1,0 +1,20 @@
+
+# Folders
+.idea/
+
+# Images and graphical
+*.pdf
+*.png
+*.eps
+*.svg
+*.jpeg
+
+# Non-text datasets
+*.rds
+*.rda
+*.dta
+
+# Word Processing
+*.docx
+*.doc
+*.rtf
