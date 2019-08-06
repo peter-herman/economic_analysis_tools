@@ -73,3 +73,4 @@ def TeXTable(dataframe: pd.DataFrame = None,
 
 
 
+
