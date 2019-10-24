@@ -1,0 +1,117 @@
+__Author__ = "Peter Herman"
+__Created__ = "October 24, 2019"
+__Description__ = '''Methods for accessing Comtrade API'''
+
+
+from typing import Union, List
+import requests
+'''
+# Examples:
+
+import requests
+
+my_url = get_comtrade_url(reporter = ['826', '842'], years = ['2016'], product_codes = ['080910'], classification ='HS' )
+response = requests.get(my_url, proxies=parse_proxy("C:\\Users\\peter.herman\\comtrade_proxy.txt"))
+df = pd.read_csv(io.StringIO(response.text))
+
+'''
+
+
+
+def get_comtrade_url(reporters:Union[str, List[str]] = 'all',
+                     partners:Union[str, List[str]] = 'all',
+                     years = List[str],
+                     classification:str = 'HS',
+                     product_codes: str = 'AG6',
+                     flow:str = 'imports',
+                     max_records:str = '50000'):
+    '''
+    See API documentation at https://comtrade.un.org/data/doc/api/#DataRequests
+
+    Args:
+        reporters: (Union[str, List[str]]) Reporting countries to include. Accepts 'all' or a list of numeric country
+            codes from Comtrade documentation. reporters and partners cannot both be 'all'
+        partners: (Union[str, List[str]]) Partner countries to include. Accepts 'all' or a list of numeric country
+            codes from Comtrade documentation. reporters and partners cannot both be 'all'
+        years: (List[str]) (a list of years to include.
+        classification: str, Determine classification to use, accepts HS, H1, ..., H4, ST, S1, ..., S4, and BEC. (S is
+            SITC revisions)
+        product_codes: (Union[str, List[str]) Number of digits in codes to return. Accepts 'TOTAL' (aggregated
+            by reporter-partner), a list of specific product codes, 'AG1', ..., 'AG6' (specified digits of 1 to 6), or
+            'ALL' (all codes in classification)
+        flow: (str) The type of flow to return. Accepts 'imports' or 'exports'.
+
+    Returns: A URL API Call
+
+    '''
+    prefix = 'https://comtrade.un.org/api/get?type=C&freq=A'
+
+    # Reporters
+    if reporters == 'all':
+        pass
+    else:
+        reporters = ",".join(reporters)
+    prefix = prefix + '&r='+ reporters
+
+    # years
+    years = ",".join(years)
+    prefix = prefix + '&ps=' + years
+
+    # Partners
+    if partners == 'all':
+        pass
+    else:
+        partners = ",".join(partners)
+    prefix = prefix + '&p=' + partners
+
+    # Classification
+    prefix = prefix + '&px=' + classification
+
+    # Flow
+    if flow == 'imports':
+        flow_code = '1'
+    elif flow == 'exports':
+        flow_code = '2'
+    prefix = prefix + '&rg=' + flow_code
+
+    # Aggregation
+    if product_codes in ['TOTAL', 'AG1', 'AG2', 'AG3', 'AG4', 'AG5','AG6', 'ALL']:
+        products = product_codes
+    elif isinstance(product_codes, list):
+        products = ",".join(product_codes)
+    prefix = prefix + '&cc=' + products
+
+    # Max records
+    prefix = prefix + '&max=' + max_records
+
+    # select csv
+    prefix = prefix + '&fmt=' + 'csv'
+
+    return(prefix)
+
+
+def parse_proxy(path:str):
+    '''
+    Derive Proxy information from text file
+
+    Args:
+        path: (str) Location for a txt file containing proxy information. txt should follow the following format
+            """
+            http http://username:password@172.16.3.54:9090
+            https http://username:password@172.16.3.54:9090
+            """
+
+    Returns: A dictionary containing proxy information
+    '''
+
+    proxies = {}
+    with open(path) as file:
+        for line in file:
+            vals = line.split(" ")
+            try:
+                proxies[vals[0]] = vals[1].rstrip()
+            except:
+                pass
+    return proxies
+
+
