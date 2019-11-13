@@ -1,3 +1,9 @@
+__Author__ = "Peter Herman"
+__Project__ = "used_vehicles"
+__Created__ = "November 12, 2019"
+__Description__ = ''' '''
+
+
 __All__ = ['check_merge', 'missing_data_subset', 'importer_exporter_year_subset', 'CompareIdentifiers']
 __Author__ = "Peter Herman"
 __Project__ = "gravity data comparisons"
@@ -115,6 +121,11 @@ class CompareIdentifiers(object):
             summary(self):
                 Prints basic summary information
         '''
+        if not isinstance(code_columns_a, list):
+            code_columns_a = [code_columns_a]
+        if not isinstance(code_columns_b, list):
+            code_columns_b = [code_columns_b]
+
         codes_a = set()
         for col in code_columns_a:
             temp = dataframe_a[col].unique().tolist()
@@ -156,4 +167,12 @@ class CompareIdentifiers(object):
         for text in self._summary_text:
             print(text)
         return None
+
+    def __repr__(self):
+        strg = self._summary_text
+        return "{} \n"\
+               "{} \n"\
+               "{} \n"\
+               "{} \n"\
+               "{} ".format(strg[0],strg[1],strg[2],strg[3],strg[4])
 

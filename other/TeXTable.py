@@ -30,13 +30,13 @@ def TeXTable(dataframe: pd.DataFrame = None,
     latex = dataframe.copy()
     col_list = dataframe.columns
     for col in range(dataframe.shape[1]):
-        latex.iloc[:,col] = dataframe.iloc[:,col].str.replace('\*\*\*$', '^{***}', regex=True)
+        latex.iloc[:,col] = dataframe.iloc[:,col].str.replace('\*\*\*$', '$^{***}$', regex=True)
     dataframe_2 = latex.copy()
     for col in range(dataframe.shape[1]):
-        latex.iloc[:,col] = dataframe_2.iloc[:,col].str.replace('\*\*$', '^{**}', regex=True)
+        latex.iloc[:,col] = dataframe_2.iloc[:,col].str.replace('\*\*$', '$^{**}$', regex=True)
     dataframe_3 = latex.copy()
     for col in range(dataframe.shape[1]):
-        latex.iloc[:,col] = dataframe_3.iloc[:,col].str.replace('\*$', '^{*}', regex=True)
+        latex.iloc[:,col] = dataframe_3.iloc[:,col].str.replace('\*$', '$^{*}$', regex=True)
     dataframe = latex
 
     # round values
@@ -50,7 +50,7 @@ def TeXTable(dataframe: pd.DataFrame = None,
                     dataframe.iloc[row, column] = st_format.format(rfmt)
                 except:
                     # Round values ending in specific characters
-                    for end_str in ['^{***}', '^{**}', '^{*}']:
+                    for end_str in ['$^{***}$', '$^{**}$', '$^{*}$']:
                         if cell.endswith(end_str):
                             rfmt = float(cell.rstrip(end_str))
                             rfmt = st_format.format(rfmt)
@@ -68,6 +68,8 @@ def TeXTable(dataframe: pd.DataFrame = None,
         dataframe.to_csv(save_path, index = False, sep='&', line_terminator='\\\\\n')
 
     return dataframe
+
+TeXTable(csv_input = "other/test_table.csv", round_value = 2)
 
 
 

@@ -11,7 +11,7 @@ def githubimport(user, repo, module):
    print(url)
    print(requests.get(url).text)
    exec(r, d)
-   return url
+   return d
 
 
 
