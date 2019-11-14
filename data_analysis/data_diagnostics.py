@@ -11,7 +11,9 @@ __Created__ = ["01/30/2018" \
                "11/28/2018 -  CompareCountryCodes() added"]
 
 import pandas as pd
+from pandas import DataFrame
 import numpy as np
+from typing import List
 
 '''
 dataset = estimation_data_dynamic
@@ -175,4 +177,53 @@ class CompareIdentifiers(object):
                "{} \n"\
                "{} \n"\
                "{} ".format(strg[0],strg[1],strg[2],strg[3],strg[4])
+
+if 1:
+    print(True)
+else:
+    print(False)
+
+
+class DataDistribution(object):
+    def __init__(self,
+                 data:DataFrame = None,
+                 exclude_columns:List[str] = None,
+                 include_columns:List[str] = None):
+        self._data = data
+
+        if include_columns:
+            using_columns = include_columns
+        else:
+            if not exclude_columns:
+                using_columns = data.columns.tolist()
+            else:
+                using_columns = [col for col in data.columns.tolist() if col not in exclude_columns]
+
+        self.columns = using_columns
+        self.distributions = dict()
+
+        for col in self.columns:
+            self._data[col] = self._data[col].astype(str)
+            self.distributions[col] = self._get_distribution(col)
+
+    def _get_distribution(self,
+                          column):
+        temp_data = self._data[[column]].copy()
+        temp_data['count'] = 1
+        temp_data = temp_data.groupby([column]).agg('sum').reset_index()
+        temp_data['string_length'] = temp_data[column].str.len()
+        temp_data.sort_values(by = [column], ascending=False)
+        return temp_data
+
+        pass
+
+    # ToDo: Write a to_excel or csv function.
+
+
+test_data = pd.read_csv('D:\\work\\Peter_Herman\\projects\\used_vehicles\\data\\source\\policy_measures\\TRAINS_tariff_data_11-12-2019.csv')
+
+test_dd = DataDistribution(data=test_data, include_columns=['Selected Nomen', 'Native Nomen', 'Reporter'])
+print(test_dd.columns)
+print(test_dd.distributions['Reporter'])
+
 
