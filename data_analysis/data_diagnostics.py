@@ -226,7 +226,7 @@ class DataDistribution(object):
         >>> test_dd.to_excel('P:\Desktop\\test_distrobution.xlsx')
         '''
 
-        self._data = data
+        self._data = data.copy()
 
         if include_columns:
             using_columns = include_columns
