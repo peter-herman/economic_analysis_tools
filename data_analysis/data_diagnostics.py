@@ -189,6 +189,43 @@ class DataDistribution(object):
                  data:DataFrame = None,
                  exclude_columns:List[str] = None,
                  include_columns:List[str] = None):
+        '''
+        A class to provide distribution information about each code in each column. For each column, a table of counts
+        and string length is generated for each value in the column. It can also output to an excel workbook.
+
+        Args:
+            data: (pd.DataFrame)
+                A dataframe to analyze the distributions of.
+            exclude_columns: (List[str])
+                (optional) A list of columns to exclude from the distribution analysis. E.g. continuous, non-repeating
+                values with uninformative distributions.
+            include_columns: (List[str])
+                (optional) A list of columns to include in the distribution analysis. The default is to include all
+                columns.
+
+        Attributes:
+            columns: (list)
+                A list of columns with distributional info.
+            distributions: (Dict[DataFrame])
+                A dictionary keyed by the column names that contains each columns' distribution info as a DataFrame.
+            values: (Dict[list])
+                A dictionary keyed by column names containing lists of the unique values in each respective column.
+
+        Methods:
+            to_excel(self, path)
+                Args:
+                    path: (str)
+                        A location and filename at which to create a excel workbook in which each distrobution is stored
+                        on a sheet. The path should terminate in an ".xlsx" extension.
+
+        Exmaples:
+
+        >>> test_data = pd.DataFrame({'Name':['Ted', 'Ted', 'Nancy'], 'Age':[35, 32, 12]})
+        >>> test_dd = DataDistribution(data=test_data)
+        >>> print(test_dd.distributions['Name'])
+        >>> test_dd.to_excel('P:\Desktop\\test_distrobution.xlsx')
+        '''
+
         self._data = data
 
         if include_columns:
@@ -201,10 +238,11 @@ class DataDistribution(object):
 
         self.columns = using_columns
         self.distributions = dict()
+        self.values = dict()
 
         for col in self.columns:
             self._data[col] = self._data[col].astype(str)
-            self.distributions[col] = self._get_distribution(col)
+            self.distributions[col], self.values[col] = self._get_distribution(col)
 
     def _get_distribution(self,
                           column):
@@ -213,17 +251,20 @@ class DataDistribution(object):
         temp_data = temp_data.groupby([column]).agg('sum').reset_index()
         temp_data['string_length'] = temp_data[column].str.len()
         temp_data.sort_values(by = [column], ascending=False)
-        return temp_data
+        codes = temp_data[column].to_list()
+        return temp_data, codes
 
-        pass
+    def to_excel(self, path:str):
+        writer = pd.ExcelWriter(path, engine='xlsxwriter')
 
-    # ToDo: Write a to_excel or csv function.
+        for column in self.distributions.keys():
+            self.distributions[column].to_excel(writer, sheet_name = column, index = False)
+
+        writer.save()
 
 
-test_data = pd.read_csv('D:\\work\\Peter_Herman\\projects\\used_vehicles\\data\\source\\policy_measures\\TRAINS_tariff_data_11-12-2019.csv')
 
-test_dd = DataDistribution(data=test_data, include_columns=['Selected Nomen', 'Native Nomen', 'Reporter'])
-print(test_dd.columns)
-print(test_dd.distributions['Reporter'])
+
+
 
 
