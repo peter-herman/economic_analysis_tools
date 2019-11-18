@@ -178,10 +178,6 @@ class CompareIdentifiers(object):
                "{} \n"\
                "{} ".format(strg[0],strg[1],strg[2],strg[3],strg[4])
 
-if 1:
-    print(True)
-else:
-    print(False)
 
 
 class DataDistribution(object):
