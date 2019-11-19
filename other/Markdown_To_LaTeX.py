@@ -16,7 +16,6 @@ md_text = [para.strip() for para in md_text]
 
 
 def special_format(text:str):
-    # ToDo: Test handleling of bold within emph and vicse versa.
     bold_words = re.findall('\*{2}(.*?)\*{2}', text)
     for word in bold_words:
         md_word = "**{}**".format(word)
@@ -29,34 +28,39 @@ def special_format(text:str):
         tex_word = ("\\emph{" + word + '}')
         text = text.replace(md_word, tex_word)
 
+    return text
 
 
 tex_body = list()
-for para in md_text:
+classification = list()
+for count, para in enumerate(md_text):
     special_types = list()
 
     heading_1_match = re.match('^#{1}[^#]', para)
     special_types.append(heading_1_match)
     if heading_1_match:
         new_text = para[1:].strip()
+        new_text = special_format(new_text)
         tex_body.append('\\section*{' + new_text + '}')
 
     heading_2_match = re.match('^#{2}[^#]', para)
     special_types.append(heading_2_match)
     if heading_2_match:
         new_text = para[2:].strip()
+        new_text = special_format(new_text)
         tex_body.append('\\subsection*{' + new_text + '}')
 
     heading_3_match = re.match('^#{3}[^#]', para)
     special_types.append(heading_3_match)
-    if heading_2_match:
+    if heading_3_match:
         new_text = para[3:].strip()
+        new_text = special_format(new_text)
         tex_body.append('\\subsubsection*{' + new_text + '}')
 
     # ToDo: add handling for headers 4, 5, and 6.
 
     if not any(special_types):
-        new_text = para
+        new_text = special_format(para)
         tex_body.append(new_text)
 
 tex_body
