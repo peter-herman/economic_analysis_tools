@@ -3,16 +3,8 @@ __Project__ = "used_vehicles"
 __Created__ = "November 12, 2019"
 __Description__ = ''' '''
 
-
-__All__ = ['check_merge', 'missing_data_subset', 'importer_exporter_year_subset', 'CompareIdentifiers']
-__Author__ = "Peter Herman"
-__Project__ = "gravity data comparisons"
-__Created__ = ["01/30/2018" \
-               "11/28/2018 -  CompareCountryCodes() added"]
-
 import pandas as pd
 from pandas import DataFrame
-import numpy as np
 from typing import List
 
 '''
@@ -86,7 +78,6 @@ class CompareIdentifiers(object):
                  code_columns_b = []):
         '''
         A class that compares the identifiers in two datasets to help diagnose merge quality
-
         Args:
             dataframe_a: (Pandas DataFrame)
                 A dataframe containing one set of identifiers
@@ -96,7 +87,6 @@ class CompareIdentifiers(object):
                 A list of a column name or names containing identifiers (identifiers in multiple columns are combined)
             code_columns_b: (List[str])
                 A list of a column name or names containing identifiers (identifiers in multiple columns are combined)
-
         Attributes:
             codes_a: (List[str])
                 A list of identifier codes in dataframe_a
@@ -118,7 +108,6 @@ class CompareIdentifiers(object):
                 Codes in b that are not matched with a (i.e. codes_a is nan)
             unmatched: (Pandas DataFrame)
                 All codes in both dataframes that are unmatched
-
         Methods:
             summary(self):
                 Prints basic summary information
@@ -184,11 +173,11 @@ class DataDistribution(object):
     def __init__(self,
                  data:DataFrame = None,
                  exclude_columns:List[str] = None,
-                 include_columns:List[str] = None):
+                 include_columns:List[str] = None,
+                 percentiles:List[float] = None):
         '''
         A class to provide distribution information about each code in each column. For each column, a table of counts
         and string length is generated for each value in the column. It can also output to an excel workbook.
-
         Args:
             data: (pd.DataFrame)
                 A dataframe to analyze the distributions of.
@@ -198,7 +187,6 @@ class DataDistribution(object):
             include_columns: (List[str])
                 (optional) A list of columns to include in the distribution analysis. The default is to include all
                 columns.
-
         Attributes:
             columns: (list)
                 A list of columns with distributional info.
@@ -206,16 +194,13 @@ class DataDistribution(object):
                 A dictionary keyed by the column names that contains each columns' distribution info as a DataFrame.
             values: (Dict[list])
                 A dictionary keyed by column names containing lists of the unique values in each respective column.
-
         Methods:
             to_excel(self, path)
                 Args:
                     path: (str)
                         A location and filename at which to create a excel workbook in which each distrobution is stored
                         on a sheet. The path should terminate in an ".xlsx" extension.
-
         Exmaples:
-
         >>> test_data = pd.DataFrame({'Name':['Ted', 'Ted', 'Nancy'], 'Age':[35, 32, 12]})
         >>> test_dd = DataDistribution(data=test_data)
         >>> print(test_dd.distributions['Name'])
@@ -236,6 +221,13 @@ class DataDistribution(object):
         self.distributions = dict()
         self.values = dict()
 
+        if percentiles is not None:
+            self._percentiles = percentiles
+        else:
+            self._percentiles = [round(x*0.1,1) for x in range(0,11)]
+
+        self.description = self._data.describe(percentiles = self._percentiles)
+
         for col in self.columns:
             self._data[col] = self._data[col].astype(str)
             self.distributions[col], self.values[col] = self._get_distribution(col)
@@ -248,19 +240,14 @@ class DataDistribution(object):
         temp_data['string_length'] = temp_data[column].str.len()
         temp_data.sort_values(by = [column], ascending=False)
         codes = temp_data[column].to_list()
+
+
         return temp_data, codes
 
     def to_excel(self, path:str):
         writer = pd.ExcelWriter(path, engine='xlsxwriter')
-
+        self.description.to_excel(writer, sheet_name = 'Distibutions', index = True)
         for column in self.distributions.keys():
             self.distributions[column].to_excel(writer, sheet_name = column, index = False)
 
         writer.save()
-
-
-
-
-
-
-
