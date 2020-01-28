@@ -104,6 +104,7 @@ class TraderRanking():
         total_value = sum(total_trade[flow_column])
         total_trade['share'] = total_trade[flow_column] / total_value
         total_trade['cumulative_share'] = total_trade[flow_column].cumsum() / total_value
+        total_trade['rank'] = total_trade.reset_index().index + 1
         return total_trade
 
     def ranking(self, flow: str = 'both', by_year: bool = False, by_sector: bool = False):
