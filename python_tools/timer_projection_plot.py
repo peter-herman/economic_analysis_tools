@@ -6,6 +6,7 @@ __Description__ = ''' '''
 import numpy as np
 import matplotlib.pyplot as plt
 import timeit
+from numba import jit
 test_func = '''
 def test_function(iter):
 	for i in iter:
@@ -13,6 +14,11 @@ def test_function(iter):
 			i == j
 '''
 
+@jit
+def numba_test(iter):
+	for i in iter:
+		for j in iter:
+			i == j
 
 a = timeit.timeit(stmt = 'test_function(range(1))', setup=test_func, number=10000)
 b = timeit.timeit(stmt = 'test_function(range(10))', setup=test_func, number=10000)
