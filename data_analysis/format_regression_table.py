@@ -10,14 +10,15 @@ def format_regression_table(results_dict: dict = None,
                             variable_list: List[str] = [],
                             format: str = 'txt',
                             se_below: bool = True,
-                            significance_levels: List[float] = [0.1, 0.05, 0.10],
+                            significance_levels: List[float] = [0.01, 0.05, 0.10],
                             round_values: int = 3,
                             omit_fe_prefix: List[str] = [],
                             table_columns: list = [],
                             path: str = None,
                             include_index: bool = False,
                             latex_syntax: bool = False,
-                            r_squared: bool = False):
+                            r_squared: bool = False,
+                            note: str = None):
     '''
     Format estimation results into a standard table format with options for significance stars, LaTeX syntax, standard
     error positioning, rounding, fixed effect ommission, and others options.
@@ -218,5 +219,19 @@ def format_regression_table(results_dict: dict = None,
 
         if format == 'csv':
             results_table.to_csv(path, index=include_index, sep=',', line_terminator='\n')
+
+        # Write Notes
+        footnote = '*** p < {}, ** p < {}, * p < {}. '.format(significance_levels[0], significance_levels[1],
+                                                              significance_levels[2])
+        with open(path, 'a+') as file:
+            if format == 'csv':
+                file.write('\n"{}"'.format(footnote))
+                if note is not None:
+                    file.write('"{}"'.format(note))
+            else:
+                file.write("\n{}".format(footnote))
+                if note is not None:
+                    file.write(note)
+
 
     return results_table
