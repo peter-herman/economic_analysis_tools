@@ -80,6 +80,7 @@ class TraderRanking():
             self.sector_var_name = sector_var_name
             self.sector_list = self.gravity_data[self.sector_var_name].unique().tolist()
 
+
     def _get_ranking(self, gravity_data, flow):
         '''
         A private function for constructing a ranking given a supplied dataset or subset and a specified flow type.
@@ -92,6 +93,7 @@ class TraderRanking():
             flow_column = 'total_trade'
             total_trade = pd.merge(left=total_exports, left_index=True,
                                    right=total_imports, right_index=True, how='outer')
+            total_trade = total_trade.fillna(0)
             total_trade[flow_column] = total_trade['total_exports'] + total_trade['total_imports']
         if flow == 'exports':
             flow_column = 'total_exports'
