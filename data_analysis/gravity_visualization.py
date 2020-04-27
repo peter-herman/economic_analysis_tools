@@ -33,7 +33,7 @@ def coefficient_kd_plot(estimation_model:EstimationModel,
             A dictionary of alternative variable names to use in the plot.
             For example {'original_name':'new_name}
 
-    Returns: None
+    Returns: (dictionary) A dictionary listing the sectors for which estimates are missing for each variable.
     """
     if estimation_model.results_dict is None:
         raise ValueError("results_dict does not exist. Must estimate model first.")
@@ -41,10 +41,15 @@ def coefficient_kd_plot(estimation_model:EstimationModel,
     results_dict = estimation_model.results_dict
     dict_key = results_dict.keys()
     coeff_df = pd.DataFrame(columns=variables)
+    no_estimates = dict()
     for var in variables:
         coefficients = []
+        no_estimates[var] = list()
         for key in dict_key:
-            coefficients.append(results_dict[key].params[var])
+            try:
+                coefficients.append(results_dict[key].params[var])
+            except:
+                no_estimates[var].append(key)
         coeff_df[var] = pd.Series(coefficients)
 
     if rename_variables is not None:
