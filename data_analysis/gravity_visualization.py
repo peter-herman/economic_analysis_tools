@@ -59,7 +59,8 @@ def coefficient_kd_plot(estimation_model:EstimationModel,
 
 
 
-def gravity_coefficient_error_bars(estimation_model:EstimationModel,
+
+def gravity_coefficient_error_bars(estimation_model,
                            variables:list = [],
                            path:str = None,
                            fig_dimensions:tuple = None,
@@ -137,12 +138,18 @@ def gravity_coefficient_error_bars(estimation_model:EstimationModel,
     # Assign a varaible to each sub plot coordinates
     for num in range(len(plot_scheme)):
         plot_scheme[num].append(variables[num])
+        plot_scheme[num].append(num)
 
     # Create each subplot
-    for row, col, var_name in plot_scheme:
+    for row, col, var_name, num in plot_scheme:
         var_info = param_info.loc[param_info['variable']==var_name,:].copy()
         var_info.sort_values(by=[sector_var_name], inplace = True)
-        ax = axs[row, col]
+        # Grab subplot axis
+        if n_rows <2 or n_cols<2:
+            # In cases where there are not multiple rows or columns, 2 dimension coordinates do not work.
+            ax = axs[num]
+        else:
+            ax = axs[row, col]
         # ax.locator_params(nbins=4)
         ax.errorbar(var_info[sector_var_name], var_info['coeff'], z_value*var_info['stderr'], fmt = '.', ecolor = 'k')
         ax.plot(var_info[sector_var_name], [0]*len(var_info[sector_var_name]), linestyle = '--', color = 'orange')
@@ -169,5 +176,3 @@ def gravity_coefficient_error_bars(estimation_model:EstimationModel,
         for image in path:
             image_type = image.partition(".")[-1]
             fig.savefig(image, format = image_type, bbox_inches = "tight")
-
-
