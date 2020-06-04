@@ -87,7 +87,7 @@ def create_hdfe_do_file(do_file_path:str,
 
 def run_do_file(do_file, stata_path:str = 'stata', args:list=None):
     # Set up do-file information [stata command or exe path, 'do'  process, do file]
-    cmd = ["C:\Program Files\Stata16\StataMP-64.exe", "do", do_file]
+    cmd = [stata_path, "do", do_file]
     # Add additional args in necessary (unlikely)
     if args:
         [cmd.append(arg for arg in args)]
