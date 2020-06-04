@@ -12,7 +12,8 @@ def stata_ppmlhdfe(do_file_path:str,
                        trade_var:str,
                        grav_vars:list,
                        results_path:str,
-                       stata_path):
+                       stata_path,
+                       data_subset_path:str = None):
     '''
     Create and run a ppmlhdfe regression in Stata in-line in python.
 
@@ -25,6 +26,8 @@ def stata_ppmlhdfe(do_file_path:str,
     :param grav_vars: (list[str]) Columns to use as dependent gravity variables.
     :param results_path: (str) Path for creating a dataset (.dta) of stata results
     :param stata_path: (str) Path for the computer's Stata executable.
+    :param data_subset_path: (str) Path to save the subset of the data used for the estimation (e.g. without missing values). 
+        Path can be a .dta or .csv file type. The default is None, which does not save the data subset.
 
     :return: (pd.DataFrame) A dataframe of estimation results from Stata. Also writes a .do file and results .dta to the
         disk.
@@ -60,7 +63,8 @@ def create_hdfe_do_file(do_file_path:str,
                         fixed_effects:list,
                         trade_var:str,
                         results_path:str,
-                        grav_vars:list):
+                        grav_vars:list,
+                        data_subset_path:str = None):
     with open(do_file_path, "w") as do_file:
         # Specify Using Data
         do_file.write('use "{}"\n'.format(data_path))
@@ -72,6 +76,12 @@ def create_hdfe_do_file(do_file_path:str,
             do_file.write("egen {}=group({})\n".format(fe_name, ' '.join(fe_profile)))
         # PPMLHDFE command
         do_file.write("ppmlhdfe {} {}, absorb({})\n".format(trade_var, " ".join(grav_vars), " ".join(absorb_names)))
+        if data_subset_path is not None:
+            do_file.write("keep if e(sample)\n")
+            if data_subset_path.endswith(".dta"):
+                do_file.write('save "{}", replace \n')
+            else:
+                do_file.write('export delimited using "{}", replace \n')
         # Save results
         do_file.write('parmest, saving("{}", replace) stars(0.1 0.05 0.01)\n'.format(results_path))
 
