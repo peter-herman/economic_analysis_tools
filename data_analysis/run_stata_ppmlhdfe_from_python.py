@@ -48,7 +48,8 @@ def stata_ppmlhdfe(do_file_path:str,
                         fixed_effects=fixed_effects,
                         trade_var=trade_var,
                         grav_vars=grav_vars,
-                        results_path=results_path)
+                        results_path=results_path,
+                        data_subset_path = data_subset_path)
     # Run do file
     run_do_file(do_file = do_file_path,
                 stata_path=stata_path)
@@ -60,7 +61,8 @@ def stata_ppmlhdfe(do_file_path:str,
 
 def create_hdfe_do_file(do_file_path:str,
                         data_path:str,
-                        fixed_effects:list,
+                        absorb_fixed_effects:list,
+                        estimate_fixed_effects:list,
                         trade_var:str,
                         results_path:str,
                         grav_vars:list,
@@ -70,18 +72,25 @@ def create_hdfe_do_file(do_file_path:str,
         do_file.write('use "{}"\n'.format(data_path))
         absorb_names = list()
         # Create FE identifiers
-        for fe_profile in fixed_effects:
+        for fe_profile in absorb_fixed_effects:
             fe_name = "_".join(fe_profile)
             absorb_names.append(fe_name)
             do_file.write("egen {}=group({})\n".format(fe_name, ' '.join(fe_profile)))
+        estimate_fe_names = list()
+        for fe_profile in estimate_fixed_effects:
+            fe_name = "_".join(fe_profile)
+            estimate_fe_names.append(fe_name+'*')
+            do_file.write("egen {} = concat({})\n".format(fe_name, ", ".join(fe_profile)))
+            do_file.write("quietly tab {}, generate({})\n".format(fe_name, (fe_name + '_')))
+            estimate_fe_names.append(fe_name + '_*')
         # PPMLHDFE command
         do_file.write("ppmlhdfe {} {}, absorb({})\n".format(trade_var, " ".join(grav_vars), " ".join(absorb_names)))
         if data_subset_path is not None:
             do_file.write("keep if e(sample)\n")
             if data_subset_path.endswith(".dta"):
-                do_file.write('save "{}", replace \n')
+                do_file.write('save "{}", replace \n'.format(data_subset_path))
             else:
-                do_file.write('export delimited using "{}", replace \n')
+                do_file.write('export delimited using "{}", replace \n'.format(data_subset_path))
         # Save results
         do_file.write('parmest, saving("{}", replace) stars(0.1 0.05 0.01)\n'.format(results_path))
 
