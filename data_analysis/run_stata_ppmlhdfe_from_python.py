@@ -62,10 +62,10 @@ def stata_ppmlhdfe(do_file_path:str,
 def create_hdfe_do_file(do_file_path:str,
                         data_path:str,
                         absorb_fixed_effects:list,
-                        estimate_fixed_effects:list,
                         trade_var:str,
                         results_path:str,
                         grav_vars:list,
+                        estimate_fixed_effects:list = [],
                         data_subset_path:str = None):
     with open(do_file_path, "w") as do_file:
         # Specify Using Data
