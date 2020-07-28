@@ -4,12 +4,11 @@ __created__ = "05-16-2018"
 
 import pandas as pd
 from gme import EstimationModel
-import matplotlib.pyplot as plt
 from typing import List
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 from numpy import nan
-
+import math
 
 
 def coefficient_kd_plot(estimation_model:EstimationModel,
@@ -67,15 +66,17 @@ def coefficient_kd_plot(estimation_model:EstimationModel,
 
 
 def gravity_coefficient_error_bars(estimation_model,
-                           variables:list = [],
-                           path:str = None,
-                           fig_dimensions:tuple = None,
-                           subplot_titles:dict = None,
-                           confidence_interval:float = 0.95,
-                           color_significance:float = None,
-                           no_xticks:bool = True,
-                           legend_in_subplot = False,
-                           styles:dict = None):
+                                   variables:list = [],
+                                   path:str = None,
+                                   fig_dimensions:tuple = None,
+                                   subplot_titles:dict = None,
+                                   confidence_interval:float = 0.95,
+                                   color_significance:float = None,
+                                   freq_xticks:int = 1,
+                                   xtick_plots:List[tuple]=[],
+                                   numeric_sectors = False,
+                                   legend_in_subplot = False,
+                                   styles:dict = None):
     '''
     Plot Gravity coefficient estimates from GME with error bars for confidence intervals.
 
@@ -95,8 +96,9 @@ def gravity_coefficient_error_bars(estimation_model,
             bars
         color_significance: (float) Optional. If supplied, colors insignificant values differently based on significance
             level. Defualt in None, which does not color estimates differently.
-        no_xticks:  (bool) If True, no x-axis labels are included. Can be useful when sector names are too long to be
-            properly displayed olong axis.
+        freq_xticks:  (int) The frequency with which labels are displayed for xticks. Default is 1, which displays every
+            tick. Values greater than one reduce the frequency (e.g. 5 would include every fifth label). To include no
+            labels, use a value of zero. Unless the value is zero, the first and last labels are always included.
         styles: (dict) Optional. Dictionary to specify certain color and formatting options. Can replace default options
             by supplying a dictionary containing some or all of the following keys (default values are given). See
             matplotlib documentation for valid color and format selections.
@@ -139,8 +141,21 @@ def gravity_coefficient_error_bars(estimation_model,
     # Collect Estimates and reformat DataFrame to multi-index dataframe
     estimates = estimation_model.combine_sector_results()
     # ToDo: make this robust to sector names containing '_' (E.g. split on the last '_' or identify specific strings (coeff, pvalue, etc.)
-    multi_col_names = [tuple(col.split('_')) for col in estimates.columns]
-    multi_index = pd.MultiIndex.from_tuples(multi_col_names, names=['sector', 'param'])
+    multi_col_names = [col.split('_') for col in estimates.columns]
+    modified_col_names = list()
+    for col in multi_col_names:
+        if len(col)>2:
+            col = ["_".join(col[0:-2]), col[-1]]
+        if numeric_sectors:
+            try:
+                col = [int(col[0]),col[1]]
+            except ValueError:
+                try:
+                    col = [float(col[0],col[1])]
+                except:
+                    raise ValueError('Sector cannot be treated as numeric.')
+        modified_col_names.append(tuple(col))
+    multi_index = pd.MultiIndex.from_tuples(modified_col_names, names=['sector', 'param'])
     estimates.columns = multi_index
 
     # Reshape Sectors Long
@@ -263,9 +278,32 @@ def gravity_coefficient_error_bars(estimation_model,
             ax.set_axis_off()
             ax.legend([coeff_points, insig_points],[ "Significant at {} level".format(color_significance),
                                                           "Not significant at {} level".format(color_significance)], loc='center')
-
-        if no_xticks:
+        # Set x labels for last row
+        ax.set_xticks(sector_list[sector_var_name].tolist())
+        if (row < (n_rows-1)) and ((row, col) not in xtick_plots):
             plt.setp(ax.get_xticklabels(), visible=False)
+        else:
+            if freq_xticks ==0:
+                plt.setp(ax.get_xticklabels(), visible=False)
+            if freq_xticks >0:
+                # Determine spacing of labels
+                # spacing = math.ceil((num_sectors - 1) / (freq_xticks - 1) - 1)
+                # spacing = round(num_sectors/(freq_xticks-1))
+                # Fill list of xticks with empty strings and selected labels
+                xtick_labels = num_sectors * ['']
+                for i in range(0, 1 + math.floor(num_sectors / freq_xticks)):
+                    try:
+                        xtick_labels[i * (freq_xticks)] = sector_list.loc[i * (freq_xticks), sector_var_name]
+                    except:
+                        pass
+                xtick_labels[0] = sector_list.loc[0, sector_var_name]
+                xtick_labels[-1] = sector_list.loc[(num_sectors-1),sector_var_name]
+                ax.set_xticklabels(xtick_labels)
+
+
+
+        # if no_xticks:
+        #     plt.setp(ax.get_xticklabels(), visible=False)
 
 
 
@@ -283,3 +321,5 @@ def gravity_coefficient_error_bars(estimation_model,
         for image in path:
             image_type = image.partition(".")[-1]
             fig.savefig(image, format = image_type, bbox_inches = "tight")
+
+    return fig, axs
