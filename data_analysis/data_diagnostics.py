@@ -1,7 +1,7 @@
 __Author__ = "Peter Herman"
-__Project__ = "used_vehicles"
+__Project__ = "economic_analysis_tools"
 __Created__ = "November 12, 2019"
-__Description__ = ''' '''
+__Description__ = '''Tools for performing routine data cleaning and diagnostic checks.'''
 
 import pandas as pd
 from pandas import DataFrame
